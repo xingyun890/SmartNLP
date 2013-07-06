@@ -21,6 +21,9 @@ public class HMMModel {
 		this.confusion = confusion;
 	}
 	
+	public HMMModel() {
+	}
+
 	public double[] getPi() {
 		return pi;
 	}

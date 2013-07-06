@@ -1,17 +1,13 @@
 package com.smart.hmm;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.HashMap;
 
 import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.smart.utils.FileUtils;
 
 public class HMMTest
 {
@@ -62,27 +58,15 @@ public class HMMTest
 		}
 	}
 	
-	public double[][] loadFile(String filename) throws IOException
-	{
-		double[][] confusion;
-		double value;
-		BufferedReader br = new BufferedReader(new FileReader(new File(filename)));
-		String line = br.readLine();
-		while(line!=null)
-		{
-			value=line.split();
-		}
-		return confusion;
-	}
-
+	
 	@Test
-	public void testForSeg() //字标注测试,注意各个矩阵始终按照B,M,E,S顺序
+	public void testForSeg() throws IOException //字标注测试,注意各个矩阵始终按照B,M,E,S顺序
 	{
 		int numberOfHidden = 4;
 		/*
 		 * 初始矩阵
 		 * {'B': 0.6887918653263693, 'E': 0.0, 'M': 0.0, 'S': 0.31120813467363073}
-		 */
+		 */ 
 		double[] pi={0.6887918653263693,0.0,0.0,0.31120813467363073}; 
 		
 		/*
@@ -100,21 +84,49 @@ public class HMMTest
 		/*
 		 * 混淆矩阵
 		 * 
-		 * 
 		 */
+		String filename = "resource/probably/transfer.txt";
+		HashMap<String,HashMap<String,Double>> confusion = FileUtils.loadFileForConfusionMatrix(filename);
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		HMMModelWithConfusionMap model = new HMMModelWithConfusionMap(pi, numberOfHidden,transfer, confusion);
+		String observation = "希腊的经济结构较特殊";
+		HMMService service = new HMMService();
+		String sentence = service.viterbi(model, observation);
+		System.out.print("The sentence is : "+sentence);
 		
 	}
+	
+	@Test
+	@Ignore
+	public void testForBaumWelch()
+	{
+		int[] observation = {2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1,
+	            1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1};
+		BaumWelch bw = new BaumWelch(observation);
+		bw.runBaumWelch();
+		HMMModel model = bw.getModel();
+		System.out.println("训练后的初始状态概率矩阵Pi：");
+		for(int i=0;i<model.getNumberOfHidden();i++){
+			System.out.print(model.getPi()[i]+"\t");
+		}
+		System.out.println();
+		System.out.println("训练后的状态转移矩阵Transfer：");
+		for(int i=0;i<model.getNumberOfHidden();i++){
+			for(int j=0;j<model.getNumberOfHidden();j++){
+				System.out.print(model.getTransfer()[i][j]+"\t");
+			}
+			System.out.println();
+		}
+		
+		System.out.println("训练后的混淆矩阵Confusion：");
+		for(int i=0;i<model.getNumberOfHidden();i++){
+			for(int j=0;j<model.getNumberOfObservation();j++){
+				System.out.print(model.getConfusion()[i][j]+"\t");
+			}
+			System.out.println();
+		}
+	}
+	
+	
 
 }
